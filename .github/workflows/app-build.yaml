@@ -1,10 +1,6 @@
 name: App / Build
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
+on: [push, pull_request]
 
 permissions:
   contents: read
@@ -13,6 +9,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-24.04
+    env:
+      APK_SIGNING_KEYSTORE: ${{ secrets.KEYSTORE }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -23,8 +21,20 @@ jobs:
           java-version: 21
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
-      - name: Assemble debug APKs
-        run: ./gradlew assembleDebug
+      - name: Assemble debug / unsigned release APKs
+        run: ./gradlew assemble
+      - name: Sign APK
+        id: signApk
+        if: ${{ env.APK_SIGNING_KEYSTORE }}
+        uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # tag=v1
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ env.APK_SIGNING_KEYSTORE }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
       - name: Create publish bundle
         run: mkdir -p build/gh-app-publish/; find app/build/ -iname "*.apk" -exec mv "{}" build/gh-app-publish/ \;
       - name: Upload artifacts
