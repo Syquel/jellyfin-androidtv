@@ -25,10 +25,21 @@ class UserViewCardPresenter(
 		fun setItem(rowItem: BaseRowItem?) {
 			val baseItem = rowItem?.baseItem
 
+			// Determine size
+			val width: Int
+			val height: Int
+			if (small) {
+				width = 133
+				height = 75
+			} else {
+				width = 224
+				height = 126
+			}
+
 			// Load image
 			val image = baseItem?.itemImages[ImageType.PRIMARY]
 			cardView.mainImageView.load(
-				url = image?.let(imageHelper::getImageUrl),
+				url = image?.let { imageHelper.getImageUrl(it, width, height) },
 				blurHash = image?.blurHash,
 				placeholder = ContextCompat.getDrawable(cardView.context, R.drawable.tile_land_folder),
 				aspectRatio = ImageHelper.ASPECT_RATIO_16_9,
@@ -39,11 +50,7 @@ class UserViewCardPresenter(
 			cardView.setTitleText(rowItem?.getName(cardView.context))
 
 			// Set size
-			if (small) {
-				cardView.setMainImageDimensions(133, 75)
-			} else {
-				cardView.setMainImageDimensions(224, 126)
-			}
+			cardView.setMainImageDimensions(width, height)
 		}
 	}
 
