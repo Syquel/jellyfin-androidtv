@@ -13,6 +13,7 @@ import org.jellyfin.androidtv.util.apiclient.itemImages
 import org.jellyfin.sdk.model.api.ImageType
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.math.roundToInt
 
 class UserViewCardPresenter(
 	val small: Boolean,
@@ -26,20 +27,23 @@ class UserViewCardPresenter(
 			val baseItem = rowItem?.baseItem
 
 			// Determine size
-			val width: Int
-			val height: Int
+			val cardWidth: Int
+			val cardHeight: Int
 			if (small) {
-				width = 133
-				height = 75
+				cardWidth = 133
+				cardHeight = 75
 			} else {
-				width = 224
-				height = 126
+				cardWidth = 224
+				cardHeight = 126
 			}
+
+			val fillWidth = (cardWidth * cardView.resources.displayMetrics.density).roundToInt()
+			val fillHeight = (cardHeight * cardView.resources.displayMetrics.density).roundToInt()
 
 			// Load image
 			val image = baseItem?.itemImages[ImageType.PRIMARY]
 			cardView.mainImageView.load(
-				url = image?.let { imageHelper.getImageUrl(it, width, height) },
+				url = image?.let { imageHelper.getImageUrl(it, fillWidth, fillHeight) },
 				blurHash = image?.blurHash,
 				placeholder = ContextCompat.getDrawable(cardView.context, R.drawable.tile_land_folder),
 				aspectRatio = ImageHelper.ASPECT_RATIO_16_9,
@@ -50,7 +54,7 @@ class UserViewCardPresenter(
 			cardView.setTitleText(rowItem?.getName(cardView.context))
 
 			// Set size
-			cardView.setMainImageDimensions(width, height)
+			cardView.setMainImageDimensions(cardWidth, cardHeight)
 		}
 	}
 
